@@ -77,11 +77,11 @@ builder.Services.AddAuthentication(options =>
 // Add CORS
 builder.Services.AddCors(options =>
 {
-    options.AddDefaultPolicy(builder =>
+    options.AddDefaultPolicy(policy =>
     {
-        builder.AllowAnyOrigin()
-               .AllowAnyMethod()
-               .AllowAnyHeader();
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
     });
 });
 
@@ -103,64 +103,8 @@ app.MapControllers();
 // Create database if it doesn't exist
 using (var scope = app.Services.CreateScope())
 {
-    var context = scope.ServiceProvider.GetRequiredService<EventContext>();
+    var context = scope.ServiceProvider.GetRequiredService<UserContext>();
     context.Database.EnsureCreated();
-
-    // Seed some test data
-    if (!context.Events.Any())
-    {
-        var events = new[]
-        {
-            new EventService.Models.Event
-            {
-                Id = Guid.NewGuid(),
-                Title = "Sommarkonsert i Parken",
-                Description = "En fantastisk utomhuskonsert med lokala artister",
-                Location = "Stadsparken, Stockholm",
-                StartDate = DateTime.UtcNow.AddDays(30),
-                EndDate = DateTime.UtcNow.AddDays(30).AddHours(4),
-                Category = "Musik",
-                MaxTickets = 500,
-                Price = 299,
-                ImageUrl = "https://via.placeholder.com/400x300",
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            },
-            new EventService.Models.Event
-            {
-                Id = Guid.NewGuid(),
-                Title = "Matfestival 2024",
-                Description = "Smaka på delikatesser från hela världen",
-                Location = "Kungsträdgården, Stockholm",
-                StartDate = DateTime.UtcNow.AddDays(45),
-                EndDate = DateTime.UtcNow.AddDays(47),
-                Category = "Mat & Dryck",
-                MaxTickets = 1000,
-                Price = 150,
-                ImageUrl = "https://via.placeholder.com/400x300",
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            },
-            new EventService.Models.Event
-            {
-                Id = Guid.NewGuid(),
-                Title = "Stand-up Comedy Night",
-                Description = "En kväll fylld med skratt och underhållning",
-                Location = "Norra Brunn, Stockholm",
-                StartDate = DateTime.UtcNow.AddDays(14),
-                EndDate = DateTime.UtcNow.AddDays(14).AddHours(3),
-                Category = "Komedi",
-                MaxTickets = 200,
-                Price = 350,
-                ImageUrl = "https://via.placeholder.com/400x300",
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            }
-        };
-
-        context.Events.AddRange(events);
-        context.SaveChanges();
-    }
 }
 
 app.Run();
