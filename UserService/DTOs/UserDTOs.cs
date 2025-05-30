@@ -45,4 +45,13 @@ namespace UserService.DTOs
         public string Token { get; set; }
         public UserDto User { get; set; }
     }
+    public class UpdatePasswordDto
+    {
+        [Required]
+        public string CurrentPassword { get; set; }
+
+        [Required]
+        [MinLength(6)]
+        public string NewPassword { get; set; }
+    }
 }

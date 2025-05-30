@@ -71,6 +71,36 @@ namespace UserService.Controllers
 
             return NoContent();
         }
+
+        [HttpPut("change-password")]
+        public async Task<ActionResult> ChangePassword(UpdatePasswordDto updatePasswordDto)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+            {
+                return Unauthorized();
+            }
+
+            var user = await _context.Users.FindAsync(Guid.Parse(userId));
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            // Verifiera nuvarande lösenord
+            if (!BCrypt.Net.BCrypt.Verify(updatePasswordDto.CurrentPassword, user.PasswordHash))
+            {
+                return BadRequest("Felaktigt nuvarande lösenord");
+            }
+
+            // Uppdatera till nytt lösenord
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(updatePasswordDto.NewPassword);
+            user.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Lösenordet har uppdaterats" });
+        }
     }
 
     public class UpdateProfileDto
