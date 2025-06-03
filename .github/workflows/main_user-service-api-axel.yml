@@ -63,8 +63,4 @@ jobs:
           slot-name: 'Production'
           package: .
 
-        with:
-          app-name: 'user-service-api-axel'
-          slot-name: 'Production'
-          package: .
           
