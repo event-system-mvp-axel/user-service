@@ -24,7 +24,7 @@ jobs:
         run: dotnet build userservice/userservice.csproj --configuration Release
 
       - name: dotnet publish
-        run: dotnet publish userservice/userservice.csproj --configuration Release --output ${{env.DOTNET_ROOT}}/myapp
+        run: dotnet publish userservice/userservice.csproj --configuration Release --output "${{ github.workspace }}/myapp"
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
