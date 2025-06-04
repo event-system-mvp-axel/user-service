@@ -85,6 +85,10 @@ builder.Services.AddCors(options =>
     });
 });
 
+// Azure App Service port binding
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+builder.WebHost.UseUrls($"http://*:{port}");
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -99,6 +103,10 @@ app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+
+// Health check endpoints
+app.MapGet("/health", () => "Service is running!");
+app.MapGet("/", () => "Service is healthy");
 
 // Create database if it doesn't exist
 using (var scope = app.Services.CreateScope())
