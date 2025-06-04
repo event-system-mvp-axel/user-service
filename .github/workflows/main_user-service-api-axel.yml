@@ -1,0 +1,63 @@
+name: Build and deploy ASP.Net Core app to Azure Web App - user-service-api-axel
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up .NET Core
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.x'
+
+      - name: Build with dotnet
+        run: dotnet build userservice/userservice.csproj --configuration Release
+
+      - name: dotnet publish
+        run: dotnet publish userservice/userservice.csproj --configuration Release --output "${{ github.workspace }}/myapp"
+
+      - name: Upload artifact for deployment job
+        uses: actions/upload-artifact@v4
+        with:
+          name: .net-app
+          path: "${{ github.workspace }}/myapp"
+
+  deploy:
+    runs-on: windows-latest
+    needs: build
+    environment:
+      name: 'Production'
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Download artifact from build job
+        uses: actions/download-artifact@v4
+        with:
+          name: .net-app
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_EC5E8524A12444F5AD00060B8126ABBE }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_0D866DF38BA444A98098C15F05DAF4FB }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_435E5C92310F4503ADC707599D0C55F4 }}
+
+      - name: Deploy to Azure Web App
+        id: deploy-to-webapp
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: 'user-service-api-axel'
+          slot-name: 'Production'
+          package: .
