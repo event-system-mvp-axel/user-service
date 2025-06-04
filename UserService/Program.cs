@@ -1,3 +1,4 @@
+
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -79,9 +80,10 @@ builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
-        policy.AllowAnyOrigin()
+        policy.WithOrigins("https://calm-pebble-0c29bef03.6.azurestaticapps.net")
               .AllowAnyMethod()
-              .AllowAnyHeader();
+              .AllowAnyHeader()
+              .AllowCredentials();
     });
 });
 
@@ -112,7 +114,31 @@ app.MapGet("/", () => "Service is healthy");
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<UserContext>();
-    context.Database.EnsureCreated();
+
+    try
+    {
+        context.Database.EnsureCreated();
+
+        // Skapa Users tabellen manuellt om den inte finns
+        context.Database.ExecuteSqlRaw(@"
+            IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Users' AND xtype='U')
+            CREATE TABLE Users (
+                Id uniqueidentifier PRIMARY KEY,
+                Email nvarchar(100) NOT NULL UNIQUE,
+                PasswordHash nvarchar(max) NOT NULL,
+                FirstName nvarchar(50) NOT NULL,
+                LastName nvarchar(50) NOT NULL,
+                PhoneNumber nvarchar(20),
+                CreatedAt datetime2 NOT NULL,
+                UpdatedAt datetime2 NOT NULL
+            )");
+
+        Console.WriteLine("User database setup completed!");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Database setup error: {ex.Message}");
+    }
 }
 
 app.Run();
